@@ -1,0 +1,95 @@
+﻿@{
+    ViewBag.Title = "Products";
+}
+
+<h2>Products</h2>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>Id</th>
+            <th>Name</th>
+            <th>Price</th>
+        </tr>
+    </thead>
+
+    <tbody id="productContainer">
+       <!-- Server-side fallback için buraya render edilecek -->
+    </tbody>
+</table>
+
+<!--Pagination Links -->
+<div id="paginationLinks">
+    @* Server-side fallbacks: kullanıcıda JS yoksa linkler buraya gelir.*@
+    @for (int i = 1; i <= ViewBag.TotalPages; i++)
+    {
+        <a asp-action="Index" asp-route-page="@i">
+            @i
+        </a>
+    }
+</div>
+@*
+JS açıksa:
+
+fetch ile /GetProducts?page=x çağrılır
+
+<tbody> güncellenir
+
+Pagination linki aktif renk alır
+
+Sayfa yenilenmez
+
+JS kapalıysa:
+
+<a asp-action="Index" ...> linkleri ile klasik server-side paging çalışır
+
+Sayfa yenilenir, controller yeni sayfayı render eder
+
+*@
+@section Scripts {
+<script type="text/javascript">
+    document.addEventListener("DOMContentLoaded", function() {
+        const container = document.getElementById("productContainer");
+        const pagination = document.getElementById("paginationLinks");
+
+        function loadPage(page) {
+            fetch('/Product/GetProducts?page=' + page)
+                .then(r => r.text())
+                .then(html => {
+                    container.innerHTML = html;
+
+                    // JS ile aktif sayfayı güncelle
+                    Array.from(pagination.children).forEach(link => {
+                        link.classList.remove("active");
+                        if (link.getAttribute("href").includes("page=" + page)) {
+                            link.classList.add("active");
+                        }
+                    });
+                })
+                .catch(err => console.error(err));
+        }
+
+        // Pagination linklerine JS click handler ekle
+        Array.from(pagination?.children).forEach(link => {
+            link.addEventListener("click", function(e) {
+                e.preventDefault;
+                const url = new URL(this.href);
+                const page = url.searchParams.get("page");
+                laodPage(page);
+            });
+        });
+
+        //Ssayfa açılır açılmaz 1. sayfa yüklensin
+        loadPage(1);
+         
+    }
+    });
+
+</script>
+}
+<style>
+    #paginationLinks a.active{
+        font-weight:bold;
+        color:red;
+    }
+</style>
