@@ -34,11 +34,11 @@ namespace PaginationWebAppDemo.Controllers
          }*/
 
         //Main View
-        public async Task<IActionResult> Index(int page = 1)
+        public async Task<IActionResult> Index(int page = 1,CancellationToken cancellationToken=default)
         {
             int pageSize = 10;
 
-            var totalCount = await appDbContext.Products.CountAsync();
+            var totalCount = await appDbContext.Products.CountAsync(cancellationToken);
 
             ViewBag.TotalPages = (int)Math.Ceiling((double)totalCount / pageSize);
             ViewBag.CurrentPage = page;
@@ -51,12 +51,12 @@ namespace PaginationWebAppDemo.Controllers
         /// </summary>
         /// <param name="page"></param>
         /// <returns></returns>
-        public async Task<IActionResult> GetProducts(int page = 1)
+        public async Task<IActionResult> GetProducts(int page = 1,CancellationToken cancellationToken=default)
         
         {
 
             int pageSize = 10;
-            var totalCount = await appDbContext.Products.CountAsync();
+            var totalCount = await appDbContext.Products.CountAsync(cancellationToken);
 
             var products = await appDbContext
                                 .Products
@@ -68,7 +68,7 @@ namespace PaginationWebAppDemo.Controllers
             ViewBag.TotalPages = (int)Math.Ceiling((double)totalCount / pageSize);
             ViewBag.CurrentPage = page;
 
-            return PartialView("_ProductList", products);
+            return PartialView("_ProductRows", products);
         }
     }
 }

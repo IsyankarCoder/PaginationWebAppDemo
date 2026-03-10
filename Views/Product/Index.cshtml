@@ -19,13 +19,14 @@
 </table>
 
 <!--Pagination Links -->
-<div id="paginationLinks">
+<div id="pagination">
     @* Server-side fallbacks: kullanıcıda JS yoksa linkler buraya gelir.*@
-    @for (int i = 1; i <= ViewBag.TotalPages; i++)
+    @for (int i = 1; i <= (int)ViewBag.TotalPages; i++)
     {
         <a asp-action="GetProducts" asp-controller="Product" asp-route-page="@i">
             @i
         </a>
+        @*<a href="Product/GetProducts?page=@i" data-page="@i">@i</a>*@
     }
 </div>
 @*
@@ -49,38 +50,39 @@ Sayfa yenilenir, controller yeni sayfayı render eder
 <script type="text/javascript">
     document.addEventListener("DOMContentLoaded", function() {
         const container = document.getElementById("productContainer");
-        const pagination = document.getElementById("paginationLinks");
+        const pagination = document.getElementById("pagination");
+
+        let controller; 
 
         function loadPage(page) {
-            fetch('/Product/GetProducts?page=' + page)
-                .then(r => r.text())
-                .then(html => {
-                    container.innerHTML = html;
-
-                    // JS ile aktif sayfayı güncelle
-                    Array.from(pagination.children).forEach(link => {
-                        link.classList.remove("active");
-                        if (link.getAttribute("href").includes("page=" + page)) {
-                            link.classList.add("active");
-                        }
-                    });
-                })
-                .catch(err => console.error(err));
+        if (controller) {
+            controller.abort(); 
         }
 
-        // Pagination linklerine JS click handler ekle
-        Array.from(pagination?.children).forEach(link => {
-            link.addEventListener("click", function(e) {
-                e.preventDefault;
-                const url = new URL(this.href);
-                const page = url.searchParams.get("page");
-                laodPage(page);
-            });
+        controller = new AbortController();
+
+        fetch('/Product/GetProducts?page=${page}',
+            { signal: controller.signal })
+        .then(r => r.text())
+        .then(html => {
+            container.innerHTML = html;
+        })
+        .catch(err => {
+            if (err.name !== "AbortError")
+                console.error(err);
+        }); 
+        }
+
+        pagination?.querySelectorAll("a").forEach(link => {
+             link.addEventListener("click", e => {
+                  e.preventDefault();
+
+                  const page = link.dataset.page;
+                  loadPage(page);
+             });
         });
 
-        //Ssayfa açılır açılmaz 1. sayfa yüklensin
         loadPage(1);
-         
     
     });
 
