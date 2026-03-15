@@ -23,7 +23,7 @@
     @* Server-side fallbacks: kullanıcıda JS yoksa linkler buraya gelir.*@
     @for (int i = 1; i <= (int)ViewBag.TotalPages; i++)
     {
-        <a asp-action="GetProducts" asp-controller="Product" asp-route-page="@i">
+        <a asp-action="GetProducts" asp-controller="Product" asp-route-page="@i" data-page="@i">
             @i
         </a>
         @*<a href="Product/GetProducts?page=@i" data-page="@i">@i</a>*@
@@ -60,8 +60,8 @@ Sayfa yenilenir, controller yeni sayfayı render eder
         }
 
         controller = new AbortController();
-
-        fetch('/Product/GetProducts?page=${page}',
+        let durl = '/Product/GetProducts?page='+page;
+        fetch(durl,
             { signal: controller.signal })
         .then(r => r.text())
         .then(html => {
